@@ -87,6 +87,13 @@ BASEPLATE_BIN_Z_CLEARANCE_INPUT = 'bin_z_clearance'
 BASEPLATE_HAS_CONNECTION_HOLE_INPUT = 'has_connection_hole'
 BASEPLATE_CONNECTION_HOLE_DIAMETER_INPUT = 'connection_hole_diameter'
 
+BASEPLATE_WITH_CLIPS_INPUT = 'with_clips'
+BASEPLATE_CLIPS_LEFT_INPUT = 'clips_left'
+BASEPLATE_CLIPS_RIGHT_INPUT = 'clips_right'
+BASEPLATE_CLIPS_TOP_INPUT = 'clips_top'
+BASEPLATE_CLIPS_BOTTOM_INPUT = 'clips_bottom'
+CLIPS_GROUP = 'clips_group'
+
 INPUT_CHANGES_SAVE_DEFAULTS = 'input_changes_buttons_save_new_defaults'
 INPUT_CHANGES_RESET_TO_DEFAULTS = 'input_changes_button_reset_to_defaults'
 INPUT_CHANGES_RESET_TO_FACTORY = 'input_changes_button_factory_reset'
@@ -251,6 +258,24 @@ def command_created(args: adsk.core.CommandCreatedEventArgs):
     screwHeadSizeInput.tooltip = "Must be greater than screw diameter"
     uiState.registerCommandInput(screwHeadSizeInput)
 
+    clipsGroup = plateFeaturesGroup.children.addGroupCommandInput(CLIPS_GROUP, 'Baseplate clips')
+    clipsGroup.isExpanded = uiState.getState(CLIPS_GROUP)
+    uiState.registerCommandInput(clipsGroup)
+    generateClipsInput = clipsGroup.children.addBoolValueInput(BASEPLATE_WITH_CLIPS_INPUT, 'Add clip cutouts', True, '', uiState.getState(BASEPLATE_WITH_CLIPS_INPUT))
+    uiState.registerCommandInput(generateClipsInput)
+
+    clipsLeftInput = clipsGroup.children.addBoolValueInput(BASEPLATE_CLIPS_LEFT_INPUT, 'Left edge', True, '', uiState.getState(BASEPLATE_CLIPS_LEFT_INPUT))
+    uiState.registerCommandInput(clipsLeftInput)
+
+    clipsRightInput = clipsGroup.children.addBoolValueInput(BASEPLATE_CLIPS_RIGHT_INPUT, 'Right edge', True, '', uiState.getState(BASEPLATE_CLIPS_RIGHT_INPUT))
+    uiState.registerCommandInput(clipsRightInput)
+
+    clipsTopInput = clipsGroup.children.addBoolValueInput(BASEPLATE_CLIPS_TOP_INPUT, 'Top edge', True, '', uiState.getState(BASEPLATE_CLIPS_TOP_INPUT))
+    uiState.registerCommandInput(clipsTopInput)
+
+    clipsBottomInput = clipsGroup.children.addBoolValueInput(BASEPLATE_CLIPS_BOTTOM_INPUT, 'Bottom edge', True, '', uiState.getState(BASEPLATE_CLIPS_BOTTOM_INPUT))
+    uiState.registerCommandInput(clipsBottomInput)
+
     sidePaddingGroup = plateFeaturesGroup.children.addGroupCommandInput(SIDE_PADDING_GROUP, 'Side padding')
     sidePaddingGroup.isExpanded = uiState.getState(SIDE_PADDING_GROUP)
     uiState.registerCommandInput(sidePaddingGroup)
@@ -365,6 +390,13 @@ def command_input_changed(args: adsk.core.InputChangedEventArgs):
         configUtils.deleteConfigFile(UI_INPUT_DEFAULTS_CONFIG_PATH)
         initUiState()
         uiState.forceUIRefresh()
+    elif changed_input.id == BASEPLATE_WITH_CLIPS_INPUT:
+        hasClips = args.inputs.itemById(BASEPLATE_WITH_CLIPS_INPUT).value
+        args.inputs.itemById(BASEPLATE_CLIPS_LEFT_INPUT).isVisible = hasClips
+        args.inputs.itemById(BASEPLATE_CLIPS_RIGHT_INPUT).isVisible = hasClips
+        args.inputs.itemById(BASEPLATE_CLIPS_TOP_INPUT).isVisible = hasClips
+        args.inputs.itemById(BASEPLATE_CLIPS_BOTTOM_INPUT).isVisible = hasClips
+        uiState.onInputUpdate(changed_input)
     else:
         uiState.onInputUpdate(changed_input)
 
@@ -453,6 +485,11 @@ def generateBaseplate(args: adsk.core.CommandEventArgs):
         baseplateGeneratorInput.hasConnectionHoles = inputsState.hasConnectionHoles
         baseplateGeneratorInput.connectionScrewHolesDiameter = inputsState.connectionHoleSize
         baseplateGeneratorInput.cornerFilletRadius = const.BIN_CORNER_FILLET_RADIUS
+        baseplateGeneratorInput.hasClips = inputsState.hasClips
+        baseplateGeneratorInput.hasClipsLeft = inputsState.hasClipsLeft
+        baseplateGeneratorInput.hasClipsRight = inputsState.hasClipsRight
+        baseplateGeneratorInput.hasClipsTop = inputsState.hasClipsTop
+        baseplateGeneratorInput.hasClipsBottom = inputsState.hasClipsBottom
 
         baseplateBody = createGridfinityBaseplate(baseplateGeneratorInput, gridfinityBaseplateComponent)
         baseplateBody.name = baseplateName
@@ -483,6 +520,7 @@ def initUiState():
     uiState.initValue(INPUT_CHANGES_GROUP, True, adsk.core.GroupCommandInput.classType())
     uiState.initValue(SIDE_PADDING_GROUP, True, adsk.core.GroupCommandInput.classType())
     uiState.initValue(PREVIEW_GROUP, True, adsk.core.GroupCommandInput.classType())
+    uiState.initValue(CLIPS_GROUP, True, adsk.core.GroupCommandInput.classType())
 
     uiState.initValue(BASEPLATE_BASE_UNIT_WIDTH_INPUT, DIMENSION_DEFAULT_WIDTH_UNIT, adsk.core.ValueCommandInput.classType())
     uiState.initValue(BASEPLATE_BASE_UNIT_LENGTH_INPUT, DIMENSION_DEFAULT_WIDTH_UNIT, adsk.core.ValueCommandInput.classType())
@@ -510,6 +548,13 @@ def initUiState():
     uiState.initValue(BASEPLATE_BIN_Z_CLEARANCE_INPUT, const.BASEPLATE_BIN_Z_CLEARANCE, adsk.core.ValueCommandInput.classType())
     uiState.initValue(BASEPLATE_HAS_CONNECTION_HOLE_INPUT, False, adsk.core.BoolValueCommandInput.classType())
     uiState.initValue(BASEPLATE_CONNECTION_HOLE_DIAMETER_INPUT, const.DIMENSION_PLATE_CONNECTION_SCREW_HOLE_DIAMETER, adsk.core.ValueCommandInput.classType())
+
+    uiState.initValue(BASEPLATE_WITH_CLIPS_INPUT, False, adsk.core.BoolValueCommandInput.classType())
+    uiState.initValue(BASEPLATE_CLIPS_LEFT_INPUT, True, adsk.core.BoolValueCommandInput.classType())
+    uiState.initValue(BASEPLATE_CLIPS_RIGHT_INPUT, True, adsk.core.BoolValueCommandInput.classType())
+    uiState.initValue(BASEPLATE_CLIPS_TOP_INPUT, True, adsk.core.BoolValueCommandInput.classType())
+    uiState.initValue(BASEPLATE_CLIPS_BOTTOM_INPUT, True, adsk.core.BoolValueCommandInput.classType())
+
     uiState.initValue(SHOW_PREVIEW_INPUT, False, adsk.core.BoolValueCommandInput.classType())
 
     recordedDefaults = configUtils.readJsonConfig(UI_INPUT_DEFAULTS_CONFIG_PATH)
@@ -558,4 +603,9 @@ def getInputsState():
         uiState.getState(BASEPLATE_BIN_Z_CLEARANCE_INPUT),
         uiState.getState(BASEPLATE_HAS_CONNECTION_HOLE_INPUT),
         uiState.getState(BASEPLATE_CONNECTION_HOLE_DIAMETER_INPUT),
+        uiState.getState(BASEPLATE_WITH_CLIPS_INPUT),
+        uiState.getState(BASEPLATE_CLIPS_LEFT_INPUT),
+        uiState.getState(BASEPLATE_CLIPS_RIGHT_INPUT),
+        uiState.getState(BASEPLATE_CLIPS_TOP_INPUT),
+        uiState.getState(BASEPLATE_CLIPS_BOTTOM_INPUT),
     )

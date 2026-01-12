@@ -30,3 +30,9 @@ class InputState:
 
     hasConnectionHoles: bool
     connectionHoleSize: float
+
+    hasClips: bool
+    hasClipsLeft: bool
+    hasClipsRight: bool
+    hasClipsTop: bool
+    hasClipsBottom: bool

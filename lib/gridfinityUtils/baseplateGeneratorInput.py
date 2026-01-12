@@ -16,6 +16,11 @@ class BaseplateGeneratorInput():
         self.binZClearance = const.BASEPLATE_BIN_Z_CLEARANCE
         self.connectionScrewHolesDiameter = const.DIMENSION_PLATE_CONNECTION_SCREW_HOLE_DIAMETER
         self.cornerFilletRadius = const.BIN_CORNER_FILLET_RADIUS
+        self.hasClips = False
+        self.hasClipsLeft = False
+        self.hasClipsRight = False
+        self.hasClipsTop = False
+        self.hasClipsBottom = False
 
     @property
     def baseWidth(self) -> float:
@@ -200,3 +205,43 @@ class BaseplateGeneratorInput():
     @magnetCutoutsDepth.setter
     def magnetCutoutsDepth(self, value: float):
         self._magnetCutoutsDepth = value
+
+    @property
+    def hasClips(self) -> bool:
+        return self._hasClips
+
+    @hasClips.setter
+    def hasClips(self, value: bool):
+        self._hasClips = value
+
+    @property
+    def hasClipsLeft(self) -> bool:
+        return self._hasClipsLeft
+
+    @hasClipsLeft.setter
+    def hasClipsLeft(self, value: bool):
+        self._hasClipsLeft = value
+
+    @property
+    def hasClipsRight(self) -> bool:
+        return self._hasClipsRight
+
+    @hasClipsRight.setter
+    def hasClipsRight(self, value: bool):
+        self._hasClipsRight = value
+
+    @property
+    def hasClipsTop(self) -> bool:
+        return self._hasClipsTop
+
+    @hasClipsTop.setter
+    def hasClipsTop(self, value: bool):
+        self._hasClipsTop = value
+
+    @property
+    def hasClipsBottom(self) -> bool:
+        return self._hasClipsBottom
+
+    @hasClipsBottom.setter
+    def hasClipsBottom(self, value: bool):
+        self._hasClipsBottom = value
